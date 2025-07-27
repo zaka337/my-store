@@ -1,249 +1,343 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+"use client"
 
-// Helper function to generate a random position for dropping elements
-const getRandomPosition = (max) => Math.random() * max;
+import { useState, useEffect } from "react"
+import { motion } from "framer-motion"
+import { Link } from "react-router-dom"
 
-// Animation variants for overall container and staggered children
-const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-        opacity: 1,
-        transition: {
-            when: "beforeChildren", // Animate container before children
-            staggerChildren: 0.08, // Faster stagger for more 'crazy' feel
-            delayChildren: 0.3,
-            duration: 0.6,
-            ease: "easeOut"
-        }
-    }
-};
+// Custom SVG Icons
+const SparkleIcon = ({ className }) => (
+  <svg className={className} fill="currentColor" viewBox="0 0 24 24">
+    <path d="M12 0l2.4 7.2L22 12l-7.6 4.8L12 24l-2.4-7.2L2 12l7.6-4.8L12 0z" />
+  </svg>
+)
 
-// Animation variants for individual text blocks or elements
-const itemVariants = {
-    hidden: { opacity: 0, y: 50, scale: 0.9 },
-    visible: {
-        opacity: 1,
-        y: 0,
-        scale: 1,
-        transition: {
-            type: "spring",
-            damping: 10,
-            stiffness: 80 // Slightly less stiff for more bouncy feel
-        }
-    }
-};
+const HeartIcon = ({ className }) => (
+  <svg className={className} fill="currentColor" viewBox="0 0 24 24">
+    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+  </svg>
+)
 
-// Variants for "dropping sales" elements
-const dropVariants = {
-    initial: { y: -50, opacity: 0, scale: 0.5, rotate: 0 }, // Start closer to the top of the viewport
-    animate: (i) => ({
-        y: [0, window.innerHeight - 120, window.innerHeight - 120], // Adjusted to use window.innerHeight for full fall
-        opacity: [0, 1, 1, 0],
-        scale: [0.5, 1, 1, 1],
-        rotate: [0, 15, -15, 0],
-        transition: {
-            delay: i * 0.2 + 0.5, // Staggered entry
-            duration: 5, // Longer fall duration
-            ease: "linear",
-            times: [0, 0.2, 0.8, 1], // Keyframe timing
-            repeat: Infinity,
-            repeatDelay: 5 // Delay before repeating
-        }
-    })
-};
+const StarIcon = ({ className }) => (
+  <svg className={className} fill="currentColor" viewBox="0 0 24 24">
+    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+  </svg>
+)
 
-// Variants for the 'crazy moving cards'
-const cardDanceVariants = {
-    hidden: { opacity: 0, scale: 0.8, rotate: -20 },
-    visible: { opacity: 1, scale: 1, rotate: 0, transition: { type: "spring", damping: 10, stiffness: 100 } },
-    hover: { scale: 1.08, rotate: 5, transition: { type: "spring", stiffness: 300 } },
-    // Continuous subtle movement
-    float: {
-        y: ["0%", "5%", "-5%", "0%"],
-        x: ["0%", "-3%", "3%", "0%"],
-        rotate: [0, 1, -1, 0],
-        transition: {
-            duration: 8,
-            ease: "easeInOut",
-            repeat: Infinity,
-            repeatType: "reverse"
-        }
-    }
-};
+// Animation variants
+const fadeInUp = {
+  hidden: { opacity: 0, y: 60 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.8, ease: "easeOut" },
+  },
+}
+
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.2,
+      delayChildren: 0.3,
+    },
+  },
+}
+
+const scaleIn = {
+  hidden: { opacity: 0, scale: 0.8 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    transition: { duration: 0.6, ease: "easeOut" },
+  },
+}
 
 const AboutPage = () => {
-    const [pageHeight, setPageHeight] = useState(0);
+  const [activeSection, setActiveSection] = useState(0)
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
 
-    useEffect(() => {
-        // Set page height to correctly calculate drop animation Y value
-        const updateHeight = () => {
-            // Calculate available height between header and footer
-            const headerHeight = 64; // h-16
-            const footerHeight = 16; // h-4
-            setPageHeight(window.innerHeight - headerHeight - footerHeight);
-        };
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      setMousePosition({ x: e.clientX, y: e.clientY })
+    }
+    window.addEventListener("mousemove", handleMouseMove)
+    return () => window.removeEventListener("mousemove", handleMouseMove)
+  }, [])
 
-        updateHeight();
-        window.addEventListener('resize', updateHeight);
-        return () => window.removeEventListener('resize', updateHeight);
-    }, []);
+  const stats = [
+    { number: "50K+", label: "Happy Customers", icon: HeartIcon },
+    { number: "1000+", label: "Products", icon: SparkleIcon },
+    { number: "5★", label: "Rating", icon: StarIcon },
+    { number: "24/7", label: "Support", icon: HeartIcon },
+  ]
 
-    // Mock data for sales drops
-    const salesDrops = [
-        { id: 1, text: 'Flash Sale! 🚨', color: 'bg-red-500', icon: '⚡' },
-        { id: 2, text: '20% OFF! 🎉', color: 'bg-blue-500', icon: '🏷️' },
-        { id: 3, text: 'New Arrivals! ✨', color: 'bg-yellow-500', icon: '🌟' },
-        { id: 4, text: 'Free Shipping! 🚚', color: 'bg-green-500', icon: '🎁' },
-        { id: 5, text: 'Limited Stock! ⏳', color: 'bg-purple-500', icon: '🔥' },
-    ];
+  const timeline = [
+    {
+      year: "2020",
+      title: "The Beginning",
+      description: "Started with a dream to make beauty accessible to everyone",
+      color: "from-pink-500 to-rose-500",
+    },
+    {
+      year: "2021",
+      title: "First Milestone",
+      description: "Reached 10,000 satisfied customers across the globe",
+      color: "from-purple-500 to-indigo-500",
+    },
+    {
+      year: "2022",
+      title: "Expansion",
+      description: "Launched jewelry and fashion collections",
+      color: "from-blue-500 to-cyan-500",
+    },
+    {
+      year: "2024",
+      title: "Innovation",
+      description: "Leading the industry with sustainable beauty solutions",
+      color: "from-emerald-500 to-teal-500",
+    },
+  ]
 
-    // Mock data for moving cards
-    const movingCards = [
-        { id: 1, title: 'Beauty Tips', icon: '💄' },
-        { id: 2, title: 'Style Guides', icon: '👗' },
-        { id: 3, title: 'Jewelry Care', icon: '💎' },
-        { id: 4, title: 'Behind Scenes', icon: '🎬' },
-    ];
+  const values = [
+    {
+      title: "Quality First",
+      description: "Every product is carefully curated and tested for excellence",
+      icon: "✨",
+      gradient: "from-amber-400 to-orange-500",
+    },
+    {
+      title: "Sustainability",
+      description: "Committed to eco-friendly practices and ethical sourcing",
+      icon: "🌱",
+      gradient: "from-green-400 to-emerald-500",
+    },
+    {
+      title: "Innovation",
+      description: "Constantly evolving with the latest trends and technologies",
+      icon: "🚀",
+      gradient: "from-blue-400 to-purple-500",
+    },
+    {
+      title: "Community",
+      description: "Building a supportive community of beauty enthusiasts",
+      icon: "💝",
+      gradient: "from-pink-400 to-rose-500",
+    },
+  ]
 
-
-    return (
-        // Main container for the About page, fills available space
-        // Adjusted padding for responsiveness: p-4 for mobile, sm:p-6 for small screens, md:p-8 for medium screens and above
+  return (
+    // FIXED: Removed padding, full height from header to footer
+    <div
+      className="bg-gradient-to-br from-slate-50 via-white to-rose-50 overflow-hidden"
+      style={{ height: "calc(100vh - 80px)" }}
+    >
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div
-            className="relative w-full h-full flex flex-col items-center justify-start bg-gradient-to-br from-purple-100 to-pink-100 text-dark-text p-4 sm:p-6 md:p-8 overflow-y-auto custom-scrollbar"
-            variants={containerVariants}
+          className="absolute w-96 h-96 bg-gradient-to-r from-pink-300/20 to-purple-300/20 rounded-full blur-3xl"
+          animate={{
+            x: mousePosition.x * 0.02,
+            y: mousePosition.y * 0.02,
+          }}
+          transition={{ type: "spring", stiffness: 50, damping: 20 }}
+          style={{ left: "10%", top: "20%" }}
+        />
+        <motion.div
+          className="absolute w-80 h-80 bg-gradient-to-r from-blue-300/20 to-cyan-300/20 rounded-full blur-3xl"
+          animate={{
+            x: mousePosition.x * -0.01,
+            y: mousePosition.y * -0.01,
+          }}
+          transition={{ type: "spring", stiffness: 30, damping: 20 }}
+          style={{ right: "10%", bottom: "20%" }}
+        />
+      </div>
+
+      {/* FIXED: Full height scrollable container, no padding */}
+      <div className="relative z-10 h-full overflow-y-auto custom-scrollbar">
+        {/* Hero Section - FIXED: Starts from top, no padding */}
+        <section className="min-h-screen flex items-center justify-center px-8 lg:px-16">
+          <motion.div className="text-center w-full" variants={staggerContainer} initial="hidden" animate="visible">
+            <motion.div variants={fadeInUp} className="mb-8">
+              <span className="inline-block px-4 py-2 bg-gradient-to-r from-pink-100 to-purple-100 rounded-full text-sm font-medium text-gray-700 mb-6">
+                ✨ About GlamourHub
+              </span>
+              <h1 className="text-6xl lg:text-8xl font-bold bg-gradient-to-r from-gray-900 via-purple-600 to-pink-600 bg-clip-text text-transparent leading-tight mb-6">
+                Beauty
+                <br />
+                <span className="text-5xl lg:text-7xl">Redefined</span>
+              </h1>
+            </motion.div>
+
+            <motion.p
+              variants={fadeInUp}
+              className="text-xl lg:text-2xl text-gray-600 leading-relaxed mb-12 max-w-4xl mx-auto"
+            >
+              We're not just another beauty brand. We're a movement that celebrates individuality, embraces diversity,
+              and empowers everyone to express their unique beauty story.
+            </motion.p>
+
+            <motion.div variants={fadeInUp} className="flex flex-wrap justify-center gap-6">
+              <Link
+                to="/dressing"
+                className="group px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full font-semibold text-lg hover:shadow-2xl hover:scale-105 transition-all duration-300"
+              >
+                Explore Collection
+                <span className="ml-2 group-hover:translate-x-1 transition-transform inline-block">→</span>
+              </Link>
+              <button className="px-8 py-4 border-2 border-gray-300 text-gray-700 rounded-full font-semibold text-lg hover:border-purple-400 hover:text-purple-600 transition-all duration-300">
+                Watch Our Story
+              </button>
+            </motion.div>
+          </motion.div>
+        </section>
+
+        {/* Stats Section - Full width, no padding from edges */}
+        <section className="py-20 px-8 lg:px-16 bg-white/50 backdrop-blur-sm">
+          <motion.div
+            className="w-full"
+            variants={staggerContainer}
             initial="hidden"
-            animate="visible"
-        >
-            {/* --- Dropping Sales Elements --- */}
-            {pageHeight > 0 && salesDrops.map((drop, i) => ( // Only render if pageHeight is calculated
-                <motion.div
-                    key={drop.id}
-                    className={`absolute text-white px-3 py-1.5 rounded-full text-xs sm:text-sm font-semibold shadow-xl whitespace-nowrap`} // Smaller text/padding for mobile
-                    style={{
-                        left: `${getRandomPosition(80)}%`, // Random horizontal position
-                        top: '-50px', // Start above screen
-                        zIndex: 50 + i, // Layering
-                        backgroundColor: drop.color.replace('bg-', '') // Use actual color
-                    }}
-                    variants={dropVariants}
-                    custom={i} // Pass index as custom prop
-                    initial="initial"
-                    animate="animate"
-                >
-                    {drop.icon} {drop.text}
+            whileInView="visible"
+            viewport={{ once: true }}
+          >
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 w-full">
+              {stats.map((stat, index) => (
+                <motion.div key={index} variants={scaleIn} className="text-center group">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <stat.icon className="w-8 h-8 text-white" />
+                  </div>
+                  <div className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">{stat.number}</div>
+                  <div className="text-gray-600 font-medium">{stat.label}</div>
                 </motion.div>
-            ))}
-
-            {/* --- Main Content Container --- */}
-            <div className="relative z-20 w-full max-w-5xl flex flex-col items-center space-y-8 md:space-y-12 px-2 sm:px-4 py-4"> {/* Adjusted space-y and horizontal padding */}
-
-                {/* Section 1: Our Story - Retained core text but with more impact */}
-                <motion.div
-                    className="w-full text-center p-4 sm:p-6 bg-white bg-opacity-70 rounded-3xl shadow-xl backdrop-blur-sm" // Adjusted padding
-                    variants={itemVariants}
-                >
-                    <motion.h1
-                        className="text-5xl sm:text-6xl md:text-7xl font-extrabold text-secondary-purple mb-4 sm:mb-6 drop-shadow-md leading-tight bg-clip-text text-transparent bg-gradient-to-r from-black to-primary-pink" // Adjusted font size responsiveness
-                        variants={itemVariants}
-                    >
-                        The GlamourHub Journey
-                    </motion.h1>
-                    <div className="space-y-3 sm:space-y-4 text-base md:text-lg leading-relaxed text-gray-700"> {/* Adjusted space-y and font size responsiveness */}
-                        <motion.p variants={itemVariants}>
-                            Welcome to **GlamourHub**, your vibrant universe of exquisite makeup, elegant dressing, and dazzling jewelry. We believe that true beauty isn't just worn—it's experienced, expressed, and celebrated in every unique individual.
-                        </motion.p>
-                        <motion.p variants={itemVariants}>
-                            Born from a spark of passion for unparalleled quality and a flair for timeless design, GlamourHub is more than a destination; it's a dynamic celebration of self-expression. Every single piece in our collection is hand-picked, ensuring it meets our rigorous standards for craftsmanship, comfort, and ethical sourcing.
-                        </motion.p>
-                    </div>
-                </motion.div>
-
-                {/* Section 2: Crazy Moving Cards */}
-                <motion.div
-                    className="w-full grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 p-2 sm:p-4 bg-white bg-opacity-80 rounded-3xl shadow-xl backdrop-blur-sm" // Adjusted gap and padding
-                    variants={containerVariants} // Use container variants for staggered grid
-                >
-                    {movingCards.map((card, index) => (
-                        <motion.div
-                            key={card.id}
-                            className="flex flex-col items-center justify-center p-3 sm:p-4 text-center bg-gradient-to-br from-primary-pink to-accent-gold text-white rounded-2xl shadow-lg cursor-pointer" // Adjusted padding
-                            variants={cardDanceVariants}
-                            whileHover="hover"
-                            animate="float" // Apply continuous floating animation
-                        >
-                            <span className="text-3xl sm:text-4xl mb-1 sm:mb-2">{card.icon}</span> {/* Adjusted icon size */}
-                            <h3 className="text-sm sm:text-lg font-bold">{card.title}</h3> {/* Adjusted font size */}
-                        </motion.div>
-                    ))}
-                </motion.div>
-
-                {/* Section 3: Social Media & Gift Packs */}
-                <div className="w-full flex flex-col md:flex-row gap-4 sm:gap-6"> {/* Adjusted gap */}
-                    {/* Social Media */}
-                    <motion.div
-                        className="flex-1 p-4 sm:p-6 bg-blue-500 text-white rounded-3xl shadow-xl flex flex-col items-center justify-center text-center space-y-3 sm:space-y-4" // Adjusted padding and space-y
-                        variants={itemVariants}
-                    >
-                        <h3 className="text-2xl sm:text-3xl font-bold">Connect with Us!</h3> {/* Adjusted font size */}
-                        <p className="text-base sm:text-lg">Join our vibrant community & never miss a beat.</p> {/* Adjusted font size */}
-                        <div className="flex space-x-4 sm:space-x-6 text-3xl sm:text-4xl"> {/* Adjusted space-x and icon size */}
-                            <motion.a href="#" whileHover={{ scale: 1.2, rotate: 10 }} whileTap={{ scale: 0.9 }} className="transform transition-all duration-200"><i className="fab fa-instagram"></i></motion.a>
-                            <motion.a href="#" whileHover={{ scale: 1.2, rotate: -10 }} whileTap={{ scale: 0.9 }} className="transform transition-all duration-200"><i className="fab fa-tiktok"></i></motion.a>
-                            <motion.a href="#" whileHover={{ scale: 1.2, rotate: 10 }} whileTap={{ scale: 0.9 }} className="transform transition-all duration-200"><i className="fab fa-pinterest"></i></motion.a>
-                        </div>
-                        <p className="text-xs sm:text-sm italic">#GlamourHubLife</p> {/* Adjusted font size */}
-                    </motion.div>
-
-                    {/* Gift Packs */}
-                    <motion.div
-                        className="flex-1 p-4 sm:p-6 bg-purple-500 text-white rounded-3xl shadow-xl flex flex-col items-center justify-center text-center space-y-3 sm:space-y-4" // Adjusted padding and space-y
-                        variants={itemVariants}
-                    >
-                        <h3 className="text-2xl sm:text-3xl font-bold">Unwrap Joy!</h3> {/* Adjusted font size */}
-                        <p className="text-base sm:text-lg">Discover our exclusive gift packs, perfect for every occasion.</p> {/* Adjusted font size */}
-                        <motion.button
-                            className="bg-white text-purple-600 px-6 py-2.5 sm:px-8 sm:py-3 rounded-full text-base sm:text-lg font-bold shadow-lg" // Adjusted padding and font size
-                            whileHover={{ scale: 1.05, backgroundColor: "#f0f0f0" }}
-                            whileTap={{ scale: 0.95 }}
-                        >
-                            Get Gift Packs 🎉
-                        </motion.button>
-                    </motion.div>
-                </div>
-
-                {/* Section 4: Tour to Japan Offer */}
-                <motion.div
-                    className="w-full p-4 sm:p-6 md:p-8 bg-black text-white rounded-3xl shadow-xl text-center flex flex-col items-center space-y-4 sm:space-y-6" // Adjusted padding and space-y
-                    variants={itemVariants}
-                >
-                    <h3 className="text-3xl sm:text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-red-400 via-pink-400 to-yellow-400 leading-tight">
-                        Dream Big: Win a Tour to Japan! 🌸
-                    </h3> {/* Adjusted font size */}
-                    <p className="text-lg md:text-xl leading-relaxed max-w-2xl"> {/* Adjusted font size */}
-                        Experience the ultimate blend of fashion and culture. Participate in our grand giveaway for a chance to win an unforgettable journey to Japan!
-                    </p>
-                    <motion.button
-                        className="bg-gradient-to-r from-pink-500 to-red-500 text-white px-8 py-3.5 sm:px-10 sm:py-4 rounded-full text-lg sm:text-xl font-bold shadow-2xl" // Adjusted padding and font size
-                        whileHover={{ scale: 1.07, rotate: 2, backgroundPosition: "100% 0%" }}
-                        whileTap={{ scale: 0.95 }}
-                        style={{ backgroundSize: '200% 100%' }} // For gradient animation
-                    >
-                        Learn More & Enter!
-                    </motion.button>
-                </motion.div>
-
-                {/* Final thought */}
-                <motion.p
-                    className="font-semibold text-lg md:text-xl text-secondary-purple mt-8 mb-4 sm:mt-12 sm:mb-6" // Adjusted font size and margins
-                    variants={itemVariants}
-                >
-                    Discover Your Radiance, Explore Your World with GlamourHub.
-                </motion.p>
+              ))}
             </div>
-        </motion.div>
-    );
-};
+          </motion.div>
+        </section>
 
-export default AboutPage;
+        {/* Timeline Section - Full width */}
+        <section className="py-20 px-8 lg:px-16">
+          <motion.div
+            className="w-full"
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+          >
+            <motion.div variants={fadeInUp} className="text-center mb-16">
+              <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">Our Journey</h2>
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                From a small dream to a global beauty destination, here's how we've grown together
+              </p>
+            </motion.div>
+
+            <div className="relative w-full">
+              {/* Timeline Line */}
+              <div className="absolute left-1/2 transform -translate-x-1/2 w-1 h-full bg-gradient-to-b from-purple-400 to-pink-400 rounded-full"></div>
+
+              {timeline.map((item, index) => (
+                <motion.div
+                  key={index}
+                  variants={fadeInUp}
+                  className={`relative flex items-center mb-16 w-full ${index % 2 === 0 ? "flex-row" : "flex-row-reverse"}`}
+                >
+                  <div className={`w-1/2 ${index % 2 === 0 ? "pr-12 text-right" : "pl-12 text-left"}`}>
+                    <div
+                      className={`inline-block p-6 bg-gradient-to-r ${item.color} rounded-2xl text-white shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105`}
+                    >
+                      <div className="text-2xl font-bold mb-2">{item.year}</div>
+                      <h3 className="text-xl font-semibold mb-3">{item.title}</h3>
+                      <p className="text-white/90">{item.description}</p>
+                    </div>
+                  </div>
+
+                  {/* Timeline Dot */}
+                  <div className="absolute left-1/2 transform -translate-x-1/2 w-6 h-6 bg-white border-4 border-purple-400 rounded-full shadow-lg"></div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </section>
+
+        {/* Values Section - Full width */}
+        <section className="py-20 px-8 lg:px-16 bg-gradient-to-r from-purple-50 to-pink-50">
+          <motion.div
+            className="w-full"
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+          >
+            <motion.div variants={fadeInUp} className="text-center mb-16">
+              <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">Our Values</h2>
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto">The principles that guide everything we do</p>
+            </motion.div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 w-full">
+              {values.map((value, index) => (
+                <motion.div
+                  key={index}
+                  variants={scaleIn}
+                  className="group relative overflow-hidden bg-white rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2"
+                >
+                  <div
+                    className={`absolute inset-0 bg-gradient-to-r ${value.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-500`}
+                  ></div>
+
+                  <div className="relative z-10">
+                    <div className="text-4xl mb-4">{value.icon}</div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-3">{value.title}</h3>
+                    <p className="text-gray-600 leading-relaxed">{value.description}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </section>
+
+        {/* CTA Section - Full width, extends to bottom */}
+        <section className="py-20 px-8 lg:px-16 bg-gradient-to-r from-purple-600 to-pink-600 text-white">
+          <motion.div
+            className="w-full text-center"
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+          >
+            <motion.h2 variants={fadeInUp} className="text-4xl lg:text-5xl font-bold mb-6">
+              Ready to Start Your Beauty Journey?
+            </motion.h2>
+            <motion.p variants={fadeInUp} className="text-xl mb-12 opacity-90 max-w-4xl mx-auto">
+              Join thousands of beauty enthusiasts who trust GlamourHub for their style needs
+            </motion.p>
+            <motion.div variants={fadeInUp} className="flex flex-wrap justify-center gap-6">
+              <Link
+                to="/dressing"
+                className="px-8 py-4 bg-white text-purple-600 rounded-full font-semibold text-lg hover:shadow-2xl hover:scale-105 transition-all duration-300"
+              >
+                Shop Now
+              </Link>
+              <button className="px-8 py-4 border-2 border-white text-white rounded-full font-semibold text-lg hover:bg-white hover:text-purple-600 transition-all duration-300">
+                Contact Us
+              </button>
+            </motion.div>
+          </motion.div>
+        </section>
+      </div>
+
+      {/* Floating Elements - Positioned relative to the full container */}
+      <div
+        className="absolute top-20 left-12 w-8 h-8 bg-gradient-to-br from-rose-200 to-pink-200 
+                      rounded-full opacity-60 animate-pulse"
+      />
+      <div
+        className="absolute bottom-4 right-16 w-6 h-6 bg-gradient-to-br from-purple-200 to-indigo-200 
+                      rounded-full opacity-40 animate-bounce"
+        style={{ animationDelay: "1s" }}
+      />
+    </div>
+  )
+}
+
+export default AboutPage

@@ -1,244 +1,578 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-// Ensure this path exactly matches your file structure: src/data/jewelry.js
-import jewelryProducts, { getUniqueJewelryCategories } from '../data/jewelry.js'; 
+"use client"
 
-// Helper function to render star ratings (copied from MakeupPage)
-const renderStars = (rating) => {
-    const fullStars = Math.floor(rating);
-    const halfStar = rating % 1 !== 0;
-    const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
+import { useState, useEffect } from "react"
+import { motion, AnimatePresence } from "framer-motion"
+// CORRECTED IMPORT: Using ../data/jewelry as requested
+import jewelryProducts, { getUniqueJewelryCategories } from "../data/jewelry"
 
-    return (
-        <div className="flex items-center text-accent-gold">
-            {[...Array(fullStars)].map((_, i) => (
-                <svg key={`full-${i}`} className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.538 1.118l-2.8-2.034a1 1 0 00-1.176 0l-2.8 2.034c-.783.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.381-1.81.588-1.81h3.462a1 1 0 00.95-.69l1.07-3.292z" />
-                </svg>
-            ))}
-            {halfStar && (
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.538 1.118l-2.8-2.034a1 1 0 00-1.176 0l-2.8 2.034c-.783.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.381-1.81.588-1.81h3.462a1 1 0 00.95-.69l1.07-3.292zM10 18.333V5.414l-2.476 1.8a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.538 1.118l-2.8-2.034a1 1 0 00-1.176 0l-2.8 2.034c-.783.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.381-1.81.588-1.81h3.462a1 1 0 00.95-.69L10 2z" clipRule="evenodd" />
-                </svg>
-            )}
-            {[...Array(emptyStars)].map((_, i) => (
-                <svg key={`empty-${i}`} className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.538 1.118l-2.8-2.034a1 1 0 00-1.176 0l-2.8 2.034c-.783.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.381-1.81.588-1.81h3.462a1 1 0 00.95-.69l1.07-3.292z" />
-                </svg>
-            ))}
-        </div>
-    );
-};
+// Ultra-smooth animation variants optimized for performance
+const pageContainerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.03, // Reduced for smoother stagger
+      duration: 0.2,
+    },
+  },
+}
 
-// Skeleton Card Component (copied from MakeupPage)
-const SkeletonCard = () => (
-    <div className="bg-gray-100 rounded-xl shadow-lg p-4 animate-pulse flex flex-col items-center">
-        <div className="w-full h-48 bg-gray-200 rounded-md mb-4"></div> {/* Image placeholder */}
-        <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div> {/* Title placeholder */}
-        <div className="h-4 bg-gray-200 rounded w-1/2 mb-4"></div> {/* Price placeholder */}
-        <div className="h-10 bg-gray-200 rounded-full w-2/3"></div> {/* Button placeholder */}
-    </div>
-);
-
-// Animation variants for page transitions within the content area (copied from MakeupPage)
-const gridPageVariants = {
-    initial: { opacity: 0, x: -100 },
-    in: { opacity: 1, x: 0, transition: { type: "spring", damping: 20, stiffness: 100, staggerChildren: 0.1, delayChildren: 0.2 } },
-    out: { opacity: 0, x: 100, transition: { duration: 0.3 } }
-};
+const cardVariants = {
+  hidden: { opacity: 0, y: 5 }, // Minimal movement
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.2,
+      ease: "easeOut",
+    },
+  },
+}
 
 const detailPageVariants = {
-    initial: { opacity: 0, x: 100 },
-    in: { opacity: 1, x: 0, transition: { type: "spring", damping: 20, stiffness: 100 } },
-    out: { opacity: 0, x: -100, transition: { duration: 0.3 } }
-};
+  initial: { opacity: 0, scale: 0.98 }, // Minimal scale change
+  in: { opacity: 1, scale: 1 },
+  out: { opacity: 0, scale: 0.98 },
+}
 
-// Variants for individual product cards (for staggered animation)
-const cardVariants = {
-    hidden: { opacity: 0, y: 20, scale: 0.9 },
-    visible: { opacity: 1, y: 0, scale: 1, transition: { type: "spring", damping: 12, stiffness: 100 } }
-};
+const detailPageTransition = {
+  type: "tween",
+  ease: "easeOut",
+  duration: 0.15, // Super fast transition
+}
 
+// Enhanced Skeleton Card with jewelry elements
+const SkeletonCard = () => (
+  <div className="bg-white rounded-lg sm:rounded-xl shadow-lg p-2 sm:p-4 animate-pulse flex flex-col items-center text-center relative overflow-hidden">
+    {/* Subtle shimmer effect */}
+    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-100/50 to-transparent -translate-x-full animate-[shimmer_2s_infinite]"></div>
+
+    <div className="w-full h-24 sm:h-32 md:h-48 bg-gradient-to-br from-amber-100 via-yellow-100 to-orange-100 rounded-md sm:rounded-lg mb-2 sm:mb-4 relative">
+      <div className="absolute top-1 right-1 sm:top-2 sm:right-2 w-3 h-3 sm:w-6 sm:h-6 bg-amber-200 rounded-full"></div>
+      <div className="absolute bottom-1 left-1 sm:bottom-2 sm:left-2 w-2 h-2 sm:w-4 sm:h-4 bg-yellow-200 rounded-full"></div>
+      {/* Jewelry sparkle effects */}
+      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-amber-300 text-lg sm:text-2xl">
+        💎
+      </div>
+    </div>
+    <div className="h-3 sm:h-6 bg-gradient-to-r from-amber-200 to-yellow-200 rounded-full w-3/4 mb-1 sm:mb-2"></div>
+    <div className="h-2 sm:h-4 bg-gradient-to-r from-yellow-200 to-orange-200 rounded-full w-1/2 mb-1 sm:mb-2"></div>
+    <div className="h-2 sm:h-4 bg-gradient-to-r from-orange-200 to-amber-200 rounded-full w-1/3 mb-2 sm:mb-4"></div>
+    <div className="h-6 sm:h-10 bg-gradient-to-r from-amber-300 to-yellow-300 rounded-full w-2/3"></div>
+  </div>
+)
 
 const JewelryPage = () => {
-    const [selectedCategory, setSelectedCategory] = useState('All');
-    const [selectedProduct, setSelectedProduct] = useState(null);
-    const [isLoading, setIsLoading] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState("All")
+  const [selectedProduct, setSelectedProduct] = useState(null)
+  const [isLoading, setIsLoading] = useState(true)
 
-    const categories = getUniqueJewelryCategories(); // Uses the new helper function for Jewelry
-
-    // Filter products based on selected category
-    const filteredProducts = selectedCategory === 'All'
-        ? jewelryProducts
-        : jewelryProducts.filter(product => product.category === selectedCategory);
-
-    // Simulate loading for skeleton UI
-    useEffect(() => {
-        setIsLoading(true);
-        const timer = setTimeout(() => {
-            setIsLoading(false);
-        }, 1000); // Simulate 1 second load time
-
-        return () => clearTimeout(timer);
-    }, [selectedCategory]); // Rerun when category changes
-
-    // Reset loading when product detail view is toggled
-    useEffect(() => {
-        if (selectedProduct) {
-            setIsLoading(true);
-            const timer = setTimeout(() => {
-                setIsLoading(false);
-            }, 300); // Shorter delay for detail page
-            return () => clearTimeout(timer);
+  // ✅ Cleanup animations on unmount
+  useEffect(() => {
+    return () => {
+      // Cleanup any running animations when component unmounts
+      const animatedElements = document.querySelectorAll("[data-framer-motion]")
+      animatedElements.forEach((el) => {
+        if (el.style) {
+          el.style.transform = "none"
+          el.style.transition = "none"
         }
-    }, [selectedProduct]);
+      })
+    }
+  }, [])
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false)
+    }, 800)
+    return () => clearTimeout(timer)
+  }, [])
+
+  const categories = getUniqueJewelryCategories()
+
+  // Simple filtering without search
+  const filteredProducts =
+    selectedCategory === "All"
+      ? jewelryProducts
+      : jewelryProducts.filter((product) => product.category === selectedCategory)
+
+  useEffect(() => {
+    const scrollContainer = document.querySelector(".custom-scrollbar")
+    if (scrollContainer) {
+      scrollContainer.scrollTo({ top: 0, behavior: "smooth" })
+    }
+  }, [selectedCategory, selectedProduct])
+
+  // Enhanced star rendering with golden jewelry theme
+  const renderStars = (rating) => {
+    const fullStars = Math.floor(rating)
+    const halfStar = rating % 1 !== 0
+    const emptyStars = 5 - fullStars - (halfStar ? 1 : 0)
 
     return (
-        // Main container for the jewelry page, handles its own scrolling
-        // Adjusted padding for responsiveness: p-4 for mobile, sm:p-6 for small screens, md:p-8 for medium screens and above
-        <div className="w-full h-full p-4 sm:p-6 md:p-8 overflow-y-auto custom-scrollbar bg-light-bg text-dark-text">
-            <h1 className="text-4xl sm:text-5xl font-bold text-secondary-purple mb-6 sm:mb-10 drop-shadow-md mt-20 text-center">Jewelry Collection</h1> {/* Adjusted font size responsiveness and added text-center */}
+      <div className="flex text-amber-400 drop-shadow-sm">
+        {[...Array(fullStars)].map((_, i) => (
+          <span key={`full-${i}`} className="text-lg">
+            ★
+          </span>
+        ))}
+        {halfStar && (
+          <span key="half" className="text-amber-300 text-lg">
+            ☆
+          </span>
+        )}
+        {[...Array(emptyStars)].map((_, i) => (
+          <span key={`empty-${i}`} className="text-gray-300 text-lg">
+            ★
+          </span>
+        ))}
+      </div>
+    )
+  }
 
-            {/* Category Filter Buttons */}
-            <div className="flex flex-wrap gap-2 sm:gap-3 mb-6 sm:mb-8 justify-center"> {/* Adjusted gap and margin */}
-                {categories.map(category => (
-                    <motion.button
-                        key={category}
-                        onClick={() => {
-                            setSelectedCategory(category);
-                            setSelectedProduct(null); // Reset selected product when category changes
-                        }}
-                        className={`px-4 py-1.5 sm:px-6 sm:py-2 rounded-full text-sm sm:text-lg font-medium transition-colors duration-300 shadow-md
-                            ${selectedCategory === category
-                                ? 'bg-primary-pink text-light-text'
-                                : 'bg-white text-gray-700 hover:bg-gray-100'
-                            }`}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                    >
-                        {category}
-                    </motion.button>
-                ))}
-            </div>
-
-            {/* Product Grid / Detail View */}
-            <AnimatePresence mode="wait">
-                {selectedProduct ? (
-                    // Product Detail View
-                    <motion.div
-                        key="product-detail"
-                        variants={detailPageVariants}
-                        initial="initial"
-                        animate="in"
-                        exit="out"
-                        // Using a specific transition for detail page if defined in motionVariants.js
-                        transition={{ type: "spring", damping: 20, stiffness: 100 }}
-                        className="w-full max-w-xl sm:max-w-2xl md:max-w-3xl bg-white rounded-xl shadow-lg p-4 sm:p-6 flex flex-col md:flex-row gap-4 sm:gap-6 relative mx-auto" // Adjusted max-width, padding, and gap
-                    >
-                        <button
-                            onClick={() => setSelectedProduct(null)}
-                            className="absolute top-2 sm:top-4 left-2 sm:left-4 bg-gray-200 text-dark-text px-3 py-1.5 rounded-full text-xs sm:text-sm hover:bg-gray-300 transition-colors duration-200 flex items-center gap-1" // Adjusted padding, text size, and position
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-left"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
-                            Back to Products
-                        </button>
-
-                        {/* Product Image */}
-                        <div className="md:w-1/2 flex justify-center items-center p-1 sm:p-2"> {/* Adjusted padding */}
-                            <img
-                                src={selectedProduct.baseImageUrl}
-                                alt={selectedProduct.name}
-                                className="w-full h-auto object-contain rounded-lg shadow-md max-h-56 sm:max-h-80" // Adjusted max height for image responsiveness
-                                onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/400x400/CCCCCC/000000?text=Image+Error'; }}
-                            />
-                        </div>
-
-                        {/* Product Details */}
-                        <div className="md:w-1/2 flex flex-col justify-center py-1 sm:py-2"> {/* Adjusted padding */}
-                            <h2 className="text-2xl sm:text-3xl font-bold text-dark-text mb-1">{selectedProduct.name}</h2> {/* Adjusted font size */}
-                            <p className="text-base sm:text-lg text-gray-700 mb-1 sm:mb-2">{selectedProduct.brand}</p> {/* Adjusted font size and margin */}
-                            <div className="mb-2 sm:mb-3">{renderStars(selectedProduct.rating)}</div> {/* Adjusted margin */}
-                            <p className="text-sm text-gray-600 mb-3 sm:mb-4 leading-relaxed line-clamp-3">{selectedProduct.description}</p> {/* Adjusted font size and margin */}
-
-                            <h3 className="text-lg sm:text-xl font-semibold text-dark-text mb-2 sm:mb-3">Available Variants:</h3> {/* Adjusted font size and margin */}
-                            <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-3 sm:mb-4 max-h-[100px] overflow-y-auto custom-scrollbar"> {/* Adjusted gap and max-h */}
-                                {selectedProduct.variants.map(variant => (
-                                    <div key={variant.id} className="bg-soft-gray rounded-lg p-1.5 flex flex-col items-center justify-center text-center shadow-sm hover:bg-gray-200 transition-colors duration-200"> {/* Adjusted padding */}
-                                        <img
-                                            src={variant.imageUrl || selectedProduct.baseImageUrl}
-                                            alt={variant.name}
-                                            className="w-12 h-12 sm:w-16 sm:h-16 object-cover rounded-md border border-gray-300 mb-0.5 sm:mb-1" // Adjusted image size
-                                            onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/64x64/CCCCCC/000000?text=No+Img'; }}
-                                        />
-                                        <p className="font-medium text-dark-text text-xs sm:text-sm leading-tight">{variant.name}</p> {/* Adjusted font size */}
-                                        <p className="text-2xs sm:text-xs text-gray-600 leading-tight">Size: {variant.size}</p> {/* Adjusted font size */}
-                                        <p className="text-sm sm:text-base font-semibold text-primary-pink leading-tight">${variant.price.toFixed(2)}</p> {/* Adjusted font size */}
-                                        {variant.color && (
-                                            <div className="flex items-center text-2xs sm:text-xs text-gray-700 mt-0.5 sm:mt-1"> {/* Adjusted font size and margin */}
-                                                Color: <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full ml-1 border border-gray-300" style={{ backgroundColor: variant.color }}></span> {/* Adjusted color swatch size */}
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-                            <button className="bg-primary-pink text-light-text px-6 py-2.5 sm:px-8 sm:py-3 rounded-full text-base sm:text-lg font-semibold hover:bg-accent-gold transition-colors duration-300 shadow-md"> {/* Adjusted padding and font size */}
-                                Add to Cart
-                            </button>
-                        </div>
-                    </motion.div>
-                ) : (
-                    // Product Grid View
-                    <motion.div
-                        key="product-grid"
-                        variants={gridPageVariants}
-                        initial="initial"
-                        animate="in"
-                        exit="out"
-                        // Using a specific transition for grid page if defined in motionVariants.js
-                        transition={{ type: "spring", damping: 20, stiffness: 100, staggerChildren: 0.1, delayChildren: 0.2 }}
-                        className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6 md:gap-8" // Adjusted grid columns and gap for responsiveness
-                    >
-                        {isLoading ? (
-                            // Render skeleton cards while loading
-                            Array.from({ length: 10 }).map((_, index) => ( // Increased skeleton count for better visual
-                                <SkeletonCard key={index} />
-                            ))
-                        ) : (
-                            // Render actual product cards
-                            filteredProducts.map(product => (
-                                <motion.div
-                                    key={product.id}
-                                    variants={cardVariants}
-                                    whileHover={{ scale: 1.03 }}
-                                    whileTap={{ scale: 0.98 }}
-                                    onClick={() => {
-                                        setSelectedProduct(product);
-                                        setIsLoading(true); // Re-trigger loading for detail page transition
-                                    }}
-                                    className="bg-white rounded-xl shadow-lg p-4 sm:p-6 flex flex-col items-center cursor-pointer transform transition-all duration-200 ease-in-out" // Adjusted padding
-                                >
-                                    <img
-                                        src={product.baseImageUrl}
-                                        alt={product.name}
-                                        className="w-full h-36 sm:h-48 object-cover object-center rounded-md mb-3 sm:mb-4" // Adjusted image height
-                                        onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/400x400/CCCCCC/000000?text=Image+Error'; }}
-                                    />
-                                    <h2 className="text-base sm:text-xl font-semibold text-dark-text mb-1 text-center">{product.name}</h2> {/* Adjusted font size */}
-                                    <p className="text-xs sm:text-sm text-gray-600 mb-1.5 sm:mb-2">{product.brand}</p> {/* Adjusted font size and margin */}
-                                    <div className="mb-2 sm:mb-3">{renderStars(product.rating)}</div> {/* Adjusted margin */}
-                                    <p className="text-base sm:text-lg font-bold text-primary-pink mb-3 sm:mb-4">${product.variants[0].price.toFixed(2)}</p> {/* Display price of first variant */}
-                                    <button className="bg-accent-gold text-light-text px-4 py-1.5 sm:px-6 sm:py-2 rounded-full text-xs sm:text-sm font-medium hover:bg-primary-pink transition-colors duration-300"> {/* Adjusted padding and font size */}
-                                        View Details
-                                    </button>
-                                </motion.div>
-                            ))
-                        )}
-                    </motion.div>
-                )}
-            </AnimatePresence>
+  return (
+    <div className="w-full bg-gradient-to-br from-amber-50/40 via-white to-yellow-50/40 relative min-h-screen">
+      {/* Luxury floating elements for jewelry theme */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-10 w-20 h-20 bg-gradient-to-r from-amber-200/10 to-yellow-200/10 rounded-full blur-xl animate-pulse"></div>
+        <div
+          className="absolute bottom-32 left-20 w-16 h-16 bg-gradient-to-r from-yellow-200/10 to-orange-200/10 rounded-full blur-xl animate-pulse"
+          style={{ animationDelay: "2s" }}
+        ></div>
+        {/* Floating jewelry elements */}
+        <div
+          className="absolute top-1/4 right-1/4 text-amber-300/20 text-6xl animate-bounce"
+          style={{ animationDelay: "1s" }}
+        >
+          💎
         </div>
-    );
-};
+        <div
+          className="absolute bottom-1/3 left-1/3 text-yellow-400/20 text-4xl animate-pulse"
+          style={{ animationDelay: "3s" }}
+        >
+          ✨
+        </div>
+        <div
+          className="absolute top-1/2 left-1/6 text-orange-300/20 text-5xl animate-bounce"
+          style={{ animationDelay: "2s" }}
+        >
+          👑
+        </div>
+      </div>
 
-export default JewelryPage;
+      <motion.div
+        className="relative z-10 w-full flex flex-col items-center p-1 sm:p-2 md:p-4 lg:p-8"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
+      >
+        {/* Enhanced luxury title with decorative elements */}
+        <motion.div
+          className="text-center mb-2 sm:mb-4 md:mb-8 mt-16 sm:mt-20 md:mt-24 lg:mt-16 px-1 sm:px-2"
+          initial={{ opacity: 0, y: -30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+        >
+          <div className="relative">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold bg-gradient-to-r from-amber-600 via-yellow-600 to-orange-600 bg-clip-text text-transparent mb-1 sm:mb-2 md:mb-4 drop-shadow-lg">
+              Jewelry Collection
+            </h1>
+
+            {/* Mobile-optimized decorative elements */}
+            <div className="absolute -top-0.5 -left-1 sm:-top-1 sm:-left-2 md:-top-2 md:-left-4 text-sm sm:text-lg md:text-2xl opacity-40 animate-pulse">
+              💎
+            </div>
+            <div
+              className="absolute -top-0.5 -right-1 sm:-top-1 sm:-right-2 md:-top-2 md:-right-4 text-sm sm:text-lg md:text-2xl opacity-40 animate-pulse"
+              style={{ animationDelay: "0.5s" }}
+            >
+              ✨
+            </div>
+            <div
+              className="absolute -bottom-0.5 left-1/4 text-xs sm:text-sm md:text-xl opacity-40 animate-pulse"
+              style={{ animationDelay: "1s" }}
+            >
+              👑
+            </div>
+            <div
+              className="absolute -bottom-0.5 right-1/4 text-xs sm:text-sm md:text-xl opacity-40 animate-pulse"
+              style={{ animationDelay: "1.5s" }}
+            >
+              💍
+            </div>
+          </div>
+
+          <motion.div
+            className="w-16 sm:w-20 md:w-32 h-0.5 sm:h-0.5 md:h-1 bg-gradient-to-r from-amber-500 via-yellow-500 to-orange-500 mx-auto rounded-full mb-1 sm:mb-2 md:mb-4"
+            initial={{ width: 0 }}
+            animate={{ width: "100%" }}
+            transition={{ delay: 0.5, duration: 0.8 }}
+          />
+          <p className="text-gray-600 text-xs sm:text-sm md:text-lg font-light italic px-2 sm:px-4">
+            ✨ Discover timeless elegance ✨
+          </p>
+        </motion.div>
+
+        <AnimatePresence mode="wait">
+          {selectedProduct ? (
+            // Enhanced Product Detail View - Ultra Compact with luxury theme
+            <motion.div
+              key="product-detail"
+              variants={detailPageVariants}
+              initial="initial"
+              animate="in"
+              exit="out"
+              transition={detailPageTransition}
+              className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg bg-gradient-to-br from-white to-amber-50/30 backdrop-blur-sm rounded-lg shadow-xl p-2 sm:p-3 md:p-4 flex flex-col gap-1 sm:gap-2 md:gap-3 relative mx-auto border border-amber-100 my-1 sm:my-2"
+            >
+              {/* Mobile-optimized back button */}
+              <motion.button
+                onClick={() => setSelectedProduct(null)}
+                className="absolute top-1 left-1 sm:top-2 sm:left-2 bg-gradient-to-r from-amber-500 to-yellow-500 text-white px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full text-xs hover:from-yellow-500 hover:to-amber-500 transition-colors duration-200 flex items-center gap-0.5 sm:gap-1 z-10 shadow-md"
+                whileTap={{ scale: 0.95 }}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="8"
+                  height="8"
+                  className="sm:w-10 sm:h-10"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="m12 19-7-7 7-7" />
+                  <path d="M19 12H5" />
+                </svg>
+                <span className="hidden sm:inline">Back</span>
+              </motion.button>
+
+              {/* Mobile-optimized product image */}
+              <div className="w-full flex justify-center items-center mt-4 sm:mt-6 md:mt-4">
+                <div className="relative w-full max-w-[150px] sm:max-w-[200px] md:max-w-[250px]">
+                  <img
+                    src={selectedProduct.baseImageUrl || "/placeholder.svg"}
+                    alt={selectedProduct.name}
+                    className="w-full h-24 sm:h-32 md:h-40 object-contain rounded-lg shadow-md border border-amber-100 bg-gradient-to-br from-amber-50 to-yellow-50"
+                    onError={(e) => {
+                      e.target.onerror = null
+                      e.target.src = "https://placehold.co/400x400/F59E0B/FFFFFF?text=💎+Jewelry"
+                    }}
+                  />
+                  <div className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 text-xs sm:text-sm animate-pulse">
+                    💎
+                  </div>
+                  <div
+                    className="absolute -bottom-0.5 -left-0.5 sm:-bottom-1 sm:-left-1 text-xs animate-pulse"
+                    style={{ animationDelay: "0.5s" }}
+                  >
+                    ✨
+                  </div>
+                </div>
+              </div>
+
+              {/* Mobile-optimized product info */}
+              <div className="w-full flex flex-col px-0.5 sm:px-1">
+                <h2 className="text-sm sm:text-lg md:text-xl font-bold bg-gradient-to-r from-amber-800 to-yellow-700 bg-clip-text text-transparent mb-0.5 sm:mb-1 text-center">
+                  {selectedProduct.name}
+                </h2>
+                <p className="text-xs sm:text-sm text-amber-700 mb-1 sm:mb-2 font-medium text-center">
+                  {selectedProduct.brand}
+                </p>
+                <div className="mb-1 sm:mb-2 flex justify-center text-xs sm:text-sm">
+                  {renderStars(selectedProduct.rating)}
+                </div>
+                <p className="text-gray-700 mb-2 sm:mb-3 leading-relaxed text-xs line-clamp-2 text-center">
+                  {selectedProduct.description}
+                </p>
+
+                <h3 className="text-xs sm:text-sm font-bold text-amber-800 mb-1 sm:mb-2 flex items-center justify-center gap-0.5 sm:gap-1">
+                  Variants <span className="text-xs">💍</span>
+                </h3>
+
+                {/* Mobile-optimized variants display */}
+                <div className="grid grid-cols-4 sm:grid-cols-3 md:grid-cols-4 gap-1 sm:gap-1.5 mb-2 sm:mb-3 max-h-24 sm:max-h-32 overflow-y-auto custom-scrollbar">
+                  {selectedProduct.variants.slice(0, 8).map((variant, index) => (
+                    <div
+                      key={variant.id}
+                      className="bg-gradient-to-br from-white to-amber-50 rounded-md p-1 sm:p-1.5 shadow-sm border border-amber-100 cursor-pointer hover:shadow-md transition-shadow duration-200"
+                    >
+                      <img
+                        src={variant.imageUrl || selectedProduct.baseImageUrl}
+                        alt={variant.name}
+                        className="w-4 h-4 sm:w-5 sm:h-5 object-cover rounded-sm border border-amber-200 mb-0.5 sm:mb-1 mx-auto"
+                        onError={(e) => {
+                          e.target.onerror = null
+                          e.target.src = "https://placehold.co/50x50/F59E0B/FFFFFF?text=💎"
+                        }}
+                      />
+                      <p className="font-semibold text-amber-800 text-xs text-center mb-0.5 line-clamp-1">
+                        {variant.name}
+                      </p>
+                      <p className="text-xs font-bold text-center bg-gradient-to-r from-amber-600 to-yellow-600 bg-clip-text text-transparent">
+                        ${variant.price.toFixed(2)}
+                      </p>
+                      {variant.color && (
+                        <div className="flex items-center justify-center mt-0.5">
+                          <div
+                            className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full border border-amber-300 shadow-sm"
+                            style={{ backgroundColor: variant.color }}
+                          ></div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Mobile-optimized add to cart button */}
+                <motion.button
+                  className="w-full bg-gradient-to-r from-amber-500 to-yellow-600 text-white px-3 py-2 sm:px-4 sm:py-2.5 rounded-full text-xs sm:text-sm font-bold hover:from-yellow-600 hover:to-amber-500 transition-colors duration-200 shadow-md flex items-center justify-center gap-0.5 sm:gap-1"
+                  whileTap={{ scale: 0.98 }}
+                >
+                  Add to Cart <span className="text-xs sm:text-sm">💎</span>
+                </motion.button>
+              </div>
+            </motion.div>
+          ) : (
+            // Enhanced Product Grid View with luxury theme
+            <motion.div
+              key="product-grid"
+              variants={pageContainerVariants}
+              initial="hidden"
+              animate="visible"
+              exit="hidden"
+              className="w-full flex flex-col items-center"
+            >
+              {/* Enhanced Category Filter Buttons with luxury theme */}
+              <motion.div
+                className="flex flex-wrap justify-center gap-1 sm:gap-2 md:gap-3 mb-2 sm:mb-4 md:mb-8 px-1 sm:px-2"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                {categories.map((category, index) => (
+                  <motion.button
+                    key={category}
+                    onClick={() => {
+                      setSelectedCategory(category)
+                      setSelectedProduct(null)
+                      setIsLoading(true)
+                      setTimeout(() => setIsLoading(false), 300)
+                    }}
+                    className={`px-2 sm:px-3 md:px-4 lg:px-6 py-1 sm:py-2 md:py-3 rounded-full text-xs sm:text-sm font-semibold transition-all duration-300 shadow-lg transform hover:scale-105 ${
+                      selectedCategory === category
+                        ? "bg-gradient-to-r from-amber-500 to-yellow-600 text-white shadow-xl"
+                        : "bg-white/90 backdrop-blur-sm text-amber-700 hover:bg-amber-50 hover:shadow-xl border border-amber-100"
+                    }`}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 + index * 0.1 }}
+                    whileHover={{
+                      scale: 1.01,
+                      transition: { duration: 0.1 },
+                    }}
+                    whileTap={{
+                      scale: 0.99,
+                      transition: { duration: 0.05 },
+                    }}
+                  >
+                    {category}
+                  </motion.button>
+                ))}
+              </motion.div>
+
+              {isLoading ? (
+                // Enhanced Skeleton Grid with jewelry theme
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 md:gap-6 w-full max-w-7xl px-2 sm:px-0">
+                  {[...Array(8)].map((_, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: i * 0.05, duration: 0.2 }}
+                    >
+                      <SkeletonCard />
+                    </motion.div>
+                  ))}
+                </div>
+              ) : (
+                // Enhanced Product Grid with luxury jewelry theme
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-1.5 sm:gap-3 md:gap-4 lg:gap-6 w-full max-w-7xl px-1 sm:px-2 md:px-4">
+                  {filteredProducts.map((product, index) => (
+                    <motion.div
+                      key={product.id}
+                      className="group bg-gradient-to-br from-white to-amber-50/30 backdrop-blur-sm rounded-lg sm:rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer border border-amber-100 relative h-full flex flex-col"
+                      variants={cardVariants}
+                      whileHover={{
+                        scale: 1.005,
+                        y: -1,
+                        transition: {
+                          duration: 0.15,
+                          ease: "easeOut",
+                        },
+                      }}
+                      whileTap={{
+                        scale: 0.995,
+                        transition: { duration: 0.1 },
+                      }}
+                      onClick={() => {
+                        setIsLoading(true)
+                        setTimeout(() => {
+                          setSelectedProduct(product)
+                          setIsLoading(false)
+                        }, 150)
+                      }}
+                    >
+                      {/* Luxury gradient overlay on hover */}
+                      <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-yellow-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+                      {/* Mobile-optimized product image */}
+                      <div className="relative overflow-hidden rounded-t-lg sm:rounded-t-xl">
+                        <img
+                          src={product.baseImageUrl || "/placeholder.svg"}
+                          alt={product.name}
+                          className="w-full h-24 sm:h-32 md:h-40 lg:h-48 object-cover group-hover:scale-105 transition-transform duration-300 will-change-transform bg-gradient-to-br from-amber-50 to-yellow-50"
+                          onError={(e) => {
+                            e.target.onerror = null
+                            e.target.src = "https://placehold.co/300x300/F59E0B/FFFFFF?text=💎+Jewelry"
+                          }}
+                        />
+
+                        {/* Mobile-optimized luxury floating elements */}
+                        <div className="absolute top-1 right-1 sm:top-2 sm:right-2 text-sm sm:text-lg md:text-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-amber-400">
+                          💎
+                        </div>
+                        <div className="absolute bottom-1 left-1 sm:bottom-2 sm:left-2 text-xs sm:text-sm md:text-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-yellow-400">
+                          ✨
+                        </div>
+                        <div className="absolute top-1 left-1 sm:top-2 sm:left-2 text-xs sm:text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-orange-400">
+                          👑
+                        </div>
+                      </div>
+
+                      {/* Mobile-optimized product info */}
+                      <div className="p-1.5 sm:p-3 md:p-4 relative z-10 flex-1 flex flex-col justify-between">
+                        <h2 className="text-xs sm:text-sm md:text-base lg:text-lg font-bold text-amber-800 mb-0.5 sm:mb-1 md:mb-2 group-hover:text-amber-600 transition-colors line-clamp-1">
+                          {product.name}
+                        </h2>
+                        <p className="text-xs sm:text-sm text-amber-600 mb-1 sm:mb-2 md:mb-3 font-medium">
+                          {product.brand}
+                        </p>
+
+                        <div className="mb-1 sm:mb-3 md:mb-4 flex justify-center sm:justify-start">
+                          <div className="flex text-amber-400 drop-shadow-sm scale-75 sm:scale-100">
+                            {[...Array(Math.floor(product.rating))].map((_, i) => (
+                              <span key={`full-${i}`} className="text-sm sm:text-lg">
+                                ★
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between mb-1 sm:mb-3 md:mb-4">
+                          {product.variants.length > 1 ? (
+                            <p className="text-xs sm:text-sm md:text-lg lg:text-xl font-bold bg-gradient-to-r from-amber-600 to-yellow-600 bg-clip-text text-transparent">
+                              From ${Math.min(...product.variants.map((v) => v.price)).toFixed(2)}
+                            </p>
+                          ) : (
+                            <p className="text-xs sm:text-sm md:text-lg lg:text-xl font-bold bg-gradient-to-r from-amber-600 to-yellow-600 bg-clip-text text-transparent">
+                              ${product.variants[0].price.toFixed(2)}
+                            </p>
+                          )}
+
+                          <span className="text-xs text-amber-600 bg-amber-50 px-1 py-0.5 sm:px-2 sm:py-1 rounded-full border border-amber-200">
+                            {product.variants.length}
+                          </span>
+                        </div>
+
+                        {/* Mobile-optimized view details button */}
+                        <button className="w-full bg-gradient-to-r from-amber-600 to-yellow-600 text-white py-1 sm:py-1.5 md:py-3 rounded-md sm:rounded-lg md:rounded-xl text-xs sm:text-sm font-semibold hover:from-yellow-600 hover:to-amber-600 transition-all duration-300 shadow-md group-hover:shadow-lg transform group-hover:scale-105 flex items-center justify-center gap-0.5 sm:gap-1 md:gap-2">
+                          <span className="hidden sm:inline">View Details</span>
+                          <span className="sm:hidden">View</span>
+                          <span className="text-xs sm:text-sm">💎</span>
+                        </button>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+
+      {/* Custom Styles with luxury theme */}
+      <style jsx global>{`
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #f59e0b #fef3c7;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: #fef3c7;
+    border-radius: 10px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: linear-gradient(45deg, #f59e0b, #eab308);
+    border-radius: 10px;
+    border: 1px solid #fbbf24;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(45deg, #eab308, #f59e0b);
+  }
+  
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+  
+  .line-clamp-1 {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  * {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  .group {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+  
+  /* Ensure main scroll works */
+  html, body {
+    overflow-x: hidden;
+  }
+  
+  /* Fix for mobile scrolling */
+  @media (max-width: 768px) {
+    .custom-scrollbar {
+      -webkit-overflow-scrolling: touch;
+    }
+  }
+`}</style>
+    </div>
+  )
+}
+
+export default JewelryPage
