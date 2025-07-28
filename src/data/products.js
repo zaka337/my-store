@@ -157,15 +157,15 @@ const products = [
         name: 'Elegant Summer Dress',
         brand: 'ChicWear',
         category: 'Dresses',
-        baseImageUrl: '/content/dress-summer.jpg',
+        baseImageUrl: '/content/sd4.jpg',
         description: 'Lightweight and breathable summer dress, perfect for any occasion. Flowy design with a flattering silhouette.',
         rating: 4.9,
         variants: [
-            { id: 'drs201-v1', name: 'Floral Breeze', color: '#E0BBE4', size: 'S', price: 75.00, imageUrl: '/product-images/dress-floral-s.jpg' },
-            { id: 'drs201-v2', name: 'Floral Breeze', color: '#E0BBE4', size: 'M', price: 75.00, imageUrl: '/product-images/dress-floral-m.jpg' },
-            { id: 'drs201-v3', name: 'Floral Breeze', color: '#E0BBE4', size: 'L', price: 75.00, imageUrl: '/product-images/dress-floral-l.jpg' },
-            { id: 'drs201-v4', name: 'Ocean Blue', color: '#A0D9F7', size: 'S', price: 70.00, imageUrl: '/product-images/dress-ocean-s.jpg' },
-            { id: 'drs201-v5', name: 'Ocean Blue', color: '#A0D9F7', size: 'M', price: 70.00, imageUrl: '/product-images/dress-ocean-m.jpg' },
+            { id: 'drs201-v1', name: 'Floral Breeze', color: '#E0BBE4', size: 'S', price: 75.00, imageUrl: '/content/sd1.jpg' },
+            { id: 'drs201-v2', name: 'Floral Breeze', color: '#E0BBE4', size: 'M', price: 75.00, imageUrl: '/content/sd2.jpg' },
+            { id: 'drs201-v3', name: 'Floral Breeze', color: '#E0BBE4', size: 'L', price: 75.00, imageUrl: '/content/sd3.jpg' },
+            { id: 'drs201-v4', name: 'Ocean Blue', color: '#A0D9F7', size: 'S', price: 70.00, imageUrl: '/content/sd5.jpg' },
+            { id: 'drs201-v5', name: 'Ocean Blue', color: '#A0D9F7', size: 'M', price: 70.00, imageUrl: '/content/sd6.jpg' },
         ],
         reviews: [
             { id: 'r201-1', reviewer: 'Fashionista', rating: 5, comment: 'So comfortable and stylish! Received many compliments.', date: '2024-07-19' },
@@ -177,13 +177,13 @@ const products = [
         name: 'Classic White Blouse',
         brand: 'TimelessAttire',
         category: 'Tops',
-        baseImageUrl: '/content/blouse-white.jpg',
+        baseImageUrl: '/content/top2.jpg',
         description: 'A versatile white blouse, perfect for office or casual wear. Made from premium cotton for comfort.',
         rating: 4.7,
         variants: [
-            { id: 'drs202-v1', name: 'White', size: 'XS', price: 45.00, imageUrl: '/product-images/blouse-white-xs.jpg' },
-            { id: 'drs202-v2', name: 'White', size: 'S', price: 45.00, imageUrl: '/product-images/blouse-white-s.jpg' },
-            { id: 'drs202-v3', name: 'White', size: 'M', price: 45.00, imageUrl: '/product-images/blouse-white-m.jpg' },
+            { id: 'drs202-v1', name: 'White', size: 'XS', price: 45.00, imageUrl:'/content/t1.jpg' },
+            { id: 'drs202-v2', name: 'White', size: 'S', price: 45.00, imageUrl: '/content/t2.jpg' },
+            { id: 'drs202-v3', name: 'White', size: 'M', price: 45.00, imageUrl: '/content/t3.jpg' },
         ],
         reviews: [],
     },
@@ -192,7 +192,7 @@ const products = [
         name: 'High-Waisted Denim Jeans',
         brand: 'DenimDream',
         category: 'Bottoms',
-        baseImageUrl: '/content/jeans-denim.jpg',
+        baseImageUrl: '/content/bot2.jpg',
         description: 'Comfortable and stylish high-waisted jeans with a perfect fit. A wardrobe essential.',
         rating: 4.6,
         variants: [
@@ -208,7 +208,7 @@ const products = [
         name: 'Cozy Knit Cardigan',
         brand: 'ComfortChic',
         category: 'Outerwear',
-        baseImageUrl: '/content/cardigan-knit.jpg',
+        baseImageUrl: '/content/out1.jpg',
         description: 'Soft and warm knit cardigan, perfect for layering. A cozy addition to your wardrobe.',
         rating: 4.8,
         variants: [
@@ -224,7 +224,7 @@ const products = [
         name: 'Embroidered Silk Sari',
         brand: 'HeritageWeave',
         category: 'Sari',
-        baseImageUrl: '/content/sari-silk.jpg',
+        baseImageUrl: '/content/sari1.jpg',
         description: 'Luxurious silk sari adorned with intricate embroidery, perfect for grand occasions. Comes with unstitched blouse piece.',
         rating: 4.9,
         variants: [
@@ -240,7 +240,7 @@ const products = [
         name: 'Casual Cotton Kurti',
         brand: 'DailyChic',
         category: 'Kurti',
-        baseImageUrl: '/content/kurti-cotton.jpg',
+        baseImageUrl: '/content/kurti1.jpg',
         description: 'Comfortable and stylish cotton kurti for everyday wear. Features contemporary prints and a relaxed fit.',
         rating: 4.5,
         variants: [
@@ -255,7 +255,7 @@ const products = [
         name: 'Festive 3-Piece Suit',
         brand: 'CelebrationWear',
         category: '3 Piece',
-        baseImageUrl: '/content/3piece-festive.jpg',
+        baseImageUrl: '/content/3p1.jpg',
         description: 'Exquisite 3-piece suit with embroidered shirt, matching trousers, and a delicate net dupatta. Ideal for festive gatherings.',
         rating: 4.7,
         variants: [
@@ -272,7 +272,7 @@ const products = [
         name: 'Everyday 2-Piece Lawn Suit',
         brand: 'LawnLuxe',
         category: '2 Piece',
-        baseImageUrl: '/content/2piece-lawn.jpg',
+        baseImageUrl: '/content/2p1.jpg',
         description: 'Lightweight lawn 2-piece suit with printed shirt and matching trousers. Perfect for daily wear in warm weather.',
         rating: 4.4,
         variants: [
@@ -287,7 +287,7 @@ const products = [
         name: 'Premium Lawn Collection',
         brand: 'LawnElite',
         category: 'Lawn', // Specific category for Lawn suits
-        baseImageUrl: '/content/lawn-premium.jpg',
+        baseImageUrl: '/content/lawn1.jpg',
         description: 'Unstitched premium lawn fabric with exquisite digital prints and embroidery. Create your own masterpiece.',
         rating: 4.8,
         variants: [
@@ -301,7 +301,7 @@ const products = [
         name: 'Bridal Gown - Traditional',
         brand: 'BridalElegance',
         category: 'Bridal', // Specific category for Bridal wear
-        baseImageUrl: '/content/bridal-traditional.jpg',
+        baseImageUrl: '/content/d.jpg',
         description: 'Hand-embellished traditional bridal gown with intricate zardozi work and rich fabric. Made to order.',
         rating: 5.0,
         variants: [
